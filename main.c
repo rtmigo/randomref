@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: Copyright (c) 2021 Art Galkin <github.com/rtmigo>
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UPL-1.0
 
 // runs reference implementations of random number generators.
 // The generated numbers are written to multiple JSON files
@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h> // for double_t
 
 #define VALUES_PER_SAMPLE 1024
 
@@ -24,7 +25,7 @@ FILE* open_ref_outfile(
 	{
 
 	char filename[256];	
-	snprintf(filename, sizeof filename, "%s_%s_%s.json",
+	snprintf(filename, sizeof filename, "generated/%s_%s_%s.json",
 		alg_name, seed_id, type_suffix);
 	printf("+ %s\n", filename);
 
@@ -33,13 +34,13 @@ FILE* open_ref_outfile(
 	FILE *result = fopen(filename, "w");
 
 	fprintf(result, "{\n");
-	fprintf(result, "'algorithm': '%s',\n", alg_name);
-	fprintf(result, "'description': '%s',\n", description);
-	fprintf(result, "'seed': '%s',\n", seed);
-	fprintf(result, "'seed id': '%s',\n", seed_id);
-	fprintf(result, "'type': '%s',\n", type_suffix);
-	fprintf(result, "'values': [\n");
-	fprintf(result, "\n");
+	fprintf(result, "\"algorithm\": \"%s\",\n", alg_name);
+	fprintf(result, "\"description\": \"%s\",\n", description);
+	fprintf(result, "\"seed\": \"%s\",\n", seed);
+	fprintf(result, "\"seed id\": \"%s\",\n", seed_id);
+	fprintf(result, "\"type\": \"%s\",\n", type_suffix);
+	fprintf(result, "\"values\": [\n");
+	//fprintf(result, "\n");
 
 	return result;
 }
@@ -54,8 +55,17 @@ FILE* open_ref_outfile_old(
 
 void close_ref_outfile(FILE* f) {
 	closed_files++;
-	fprintf(f, "]},\n\n");
+	fseek(f,-2, SEEK_CUR); // remove ",\n"
+	fprintf(f, "\n]}");
 	fclose(f);
+}
+
+void write_double(FILE* f, double_t x) {
+	fprintf(f, "\t\"%.20e\",\n", x);	
+}
+
+void write_uint32(FILE* f, uint32_t x) {
+	fprintf(f, "\t\"%08x\",\n", x);	
 }
 
 ////////////////////////////////////////////////////////////////////////////////	
@@ -141,7 +151,7 @@ void print32(uint32_t seed)
 	printf("],\n\n");
 }
 
-void write32(char* name, uint64_t seed) {
+void write_xorshift32_json(char* name, uint64_t seed) {
 
 	struct xorshift32_state state;
 	state.a = seed;
@@ -161,20 +171,17 @@ void write32(char* name, uint64_t seed) {
 	for (int i=0; i<VALUES_PER_SAMPLE; ++i) {
 
 		uint32_t x1 = xorshift32(&state);
-		fprintf(ints_file, "'%08x',\n", x1);
-		fprintf(doornik_file, "'%.20e',\n", RANDBL_32(x1));
+		write_uint32(ints_file, x1);
+		write_double(doornik_file, RANDBL_32(x1));
 
 		uint32_t x2 = xorshift32(&state);
-		fprintf(ints_file, "'%08x',\n", x2);
-		fprintf(doornik_file, "'%.20e',\n", RANDBL_32(x2));
+		write_uint32(ints_file, x2);
+		write_double(doornik_file, RANDBL_32(x2));
 
 		uint64_t combined = (((uint64_t)x1)<<32)|x2;
 
-		fprintf(doubles_file, "'%.20e',\n", 
-			vigna_uint64_to_double_mult(combined));
-		fprintf(doubles_cast_file, "'%.20e',\n", 
-			vigna_uint64_to_double_alt(combined));
-		
+		write_double(doubles_file, vigna_uint64_to_double_mult(combined));
+		write_double(doubles_cast_file, vigna_uint64_to_double_alt(combined));
 	}	
 
 	close_ref_outfile(doubles_cast_file);
@@ -1157,69 +1164,64 @@ int main()
 	#define PI32 314159265
 	#define PI64 3141592653589793238ll
 
-	write32("a", 1);
-	write32("b", 42);
-	write32("c", PI32);
+	write_xorshift32_json("a", 1);
+	write_xorshift32_json("b", 42);
+	write_xorshift32_json("c", PI32);
 
-	write_xorshift32amx("a", 1);
-	write_xorshift32amx("b", 42);
-	write_xorshift32amx("c", PI32);
+	// write_xorshift32amx("a", 1);
+	// write_xorshift32amx("b", 42);
+	// write_xorshift32amx("c", PI32);
 
-	write64(1, "a");
-	write64(42, "b");
-	write64(PI64, "c");
+	// write64(1, "a");
+	// write64(42, "b");
+	// write64(PI64, "c");
 
-	write128p("a", 1, 2);
-	write128p("b", 42, 777);
-	write128p("c", 8378522730901710845llu, 1653112583875186020llu);
+	// write128p("a", 1, 2);
+	// write128p("b", 42, 777);
+	// write128p("c", 8378522730901710845llu, 1653112583875186020llu);
 
-	write128("a", 1, 2, 3, 4);
-	write128("b", 5, 23, 42, 777);
-	write128("c", 1081037251u, 1975530394u, 2959134556u, 1579461830u);	
+	// write128("a", 1, 2, 3, 4);
+	// write128("b", 5, 23, 42, 777);
+	// write128("c", 1081037251u, 1975530394u, 2959134556u, 1579461830u);	
 
-	write_tyche_i("a", 1, 2, 3, 4);
+	// write_tyche_i("a", 1, 2, 3, 4);
 
-	write_xoshiro128pp("a", 1, 2, 3, 4);
-	write_xoshiro128pp("b", 5, 23, 42, 777);
-	write_xoshiro128pp("c", 1081037251u, 1975530394u, 
-							2959134556u, 1579461830u);
+	// write_xoshiro128pp("a", 1, 2, 3, 4);
+	// write_xoshiro128pp("b", 5, 23, 42, 777);
+	// write_xoshiro128pp("c", 1081037251u, 1975530394u, 
+	// 						2959134556u, 1579461830u);
 
-	write_xoshiro256pp("a", 1, 2, 3, 4);
-	write_xoshiro256pp("b", 5, 23, 42, 777);
-	write_xoshiro256pp("c", 0x621b97ff9b08ce44ull, 0x92974ae633d5ee97ull, 
-							0x9c7e491e8f081368ull, 0xf7d3b43bed078fa3ull);
+	// write_xoshiro256pp("a", 1, 2, 3, 4);
+	// write_xoshiro256pp("b", 5, 23, 42, 777);
+	// write_xoshiro256pp("c", 0x621b97ff9b08ce44ull, 0x92974ae633d5ee97ull, 
+	// 						0x9c7e491e8f081368ull, 0xf7d3b43bed078fa3ull);
 
-	write_splitmix64("a", 1);
-	write_splitmix64("b", 0);
-	write_splitmix64("c", 777);
-	write_splitmix64("d", 0xf7d3b43bed078fa3ull);
+	// write_splitmix64("a", 1);
+	// write_splitmix64("b", 0);
+	// write_splitmix64("c", 777);
+	// write_splitmix64("d", 0xf7d3b43bed078fa3ull);
 
-	write_mulberry32("a", 1);
-	write_mulberry32("b", 0);
-	write_mulberry32("c", 777);
-	write_mulberry32("d", 1081037251u);	
+	// write_mulberry32("a", 1);
+	// write_mulberry32("b", 0);
+	// write_mulberry32("c", 777);
+	// write_mulberry32("d", 1081037251u);	
 
-	// write_splitmix32("a", 1);
-	// write_splitmix32("b", 0);
-	// write_splitmix32("c", 777);
-	// write_splitmix32("d", 1081037251u);
-
-	write_lemire("1000", 1000);
-	write_lemire("1", 1);
+	// write_lemire("1000", 1000);
+	// write_lemire("1", 1);
 	
-	write_lemire("FFx", 0xFFFFFFFFu);
-	write_lemire("7Fx", 0x7FFFFFFFu);
-	write_lemire("80x", 0x80000000u);
-	write_lemire("R1", 0x0f419dc8u);
-	write_lemire("R2", 0x32e7aeecu);
+	// write_lemire("FFx", 0xFFFFFFFFu);
+	// write_lemire("7Fx", 0x7FFFFFFFu);
+	// write_lemire("80x", 0x80000000u);
+	// write_lemire("R1", 0x0f419dc8u);
+	// write_lemire("R2", 0x32e7aeecu);
 
-	write_lemire_neill("1000", 1000);
-	write_lemire_neill("1", 1);
-	write_lemire_neill("FFx", 0xFFFFFFFFu);
-	write_lemire_neill("7Fx", 0x7FFFFFFFu);
-	write_lemire_neill("80x", 0x80000000u);
-	write_lemire_neill("R1", 0x0f419dc8u);
-	write_lemire_neill("R2", 0x32e7aeecu);
+	// write_lemire_neill("1000", 1000);
+	// write_lemire_neill("1", 1);
+	// write_lemire_neill("FFx", 0xFFFFFFFFu);
+	// write_lemire_neill("7Fx", 0x7FFFFFFFu);
+	// write_lemire_neill("80x", 0x80000000u);
+	// write_lemire_neill("R1", 0x0f419dc8u);
+	// write_lemire_neill("R2", 0x32e7aeecu);
 
 	
 	
