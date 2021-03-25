@@ -68,6 +68,12 @@ void write_uint32(FILE* f, uint32_t x) {
 	fprintf(f, "\t\"%08x\",\n", x);	
 }
 
+void write_uint64(FILE* f, uint32_t x) {
+	fprintf(f, "\t\"%016llx\",\n", x);	
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////	
 
 // "in C99 a 64-bit unsigned integer x should be converted to a 64-bit 
@@ -284,7 +290,7 @@ void print64(uint64_t seed)
 	printf("],\n\n");
 }
 
-void write64(uint64_t seed, char* name) {
+void write_xorshift64_json(uint64_t seed, char* name) {
 
 	struct xorshift64_state state;
 	state.a = seed;
@@ -302,10 +308,13 @@ void write64(uint64_t seed, char* name) {
 
 	for (int i=0; i<VALUES_PER_SAMPLE; ++i) {
 		uint64_t x = xorshift64(&state);
-		fprintf(ints_file, "'%016llx',\n", x);
+		//fprintf(ints_file, "'%016llx',\n", x);
+		write_uint64(ints_file, x);
+		write_double(doubles_file, vigna_uint64_to_double_mult(x));
+		write_double(doubles_cast_file, vigna_uint64_to_double_alt(x));
 
-		fprintf(doubles_file, "'%.20e',\n", vigna_uint64_to_double_mult(x));
-		fprintf(doubles_cast_file, "'%.20e',\n", vigna_uint64_to_double_alt(x));
+		// fprintf(doubles_file, "'%.20e',\n", vigna_uint64_to_double_mult(x));
+		// fprintf(doubles_cast_file, "'%.20e',\n", vigna_uint64_to_double_alt(x));
 	}	
 
 	close_ref_outfile(doubles_cast_file);
@@ -367,7 +376,7 @@ void print128(uint64_t a, uint64_t b, uint64_t c, uint64_t d)
 	printf("],\n\n");
 }
 
-void write128(char* name, uint64_t a, uint64_t b, uint64_t c, uint64_t d) {
+void write_json_xorshift128(char* name, uint64_t a, uint64_t b, uint64_t c, uint64_t d) {
 
 	struct xorshift128_state state;
 	state.a = a;
@@ -390,17 +399,23 @@ void write128(char* name, uint64_t a, uint64_t b, uint64_t c, uint64_t d) {
 	for (int i=0; i<VALUES_PER_SAMPLE; ++i) {
 
 		uint32_t x1 = xorshift128(&state);
-		fprintf(ints_file, "'%08x',\n", x1);
+		//fprintf(ints_file, "'%08x',\n", x1);
+		write_uint32(ints_file, x1);
 
 		uint32_t x2 = xorshift128(&state);
-		fprintf(ints_file, "'%08x',\n", x2);
+		write_uint32(ints_file, x2);
+		//fprintf(ints_file, "'%08x',\n", x2);
 
 		uint64_t combined = (((uint64_t)x1)<<32)|x2;
 
-		fprintf(doubles_file, "'%.20e',\n", 
-				vigna_uint64_to_double_mult(combined));
-		fprintf(doubles_cast_file, "'%.20e',\n", 
-				vigna_uint64_to_double_alt(combined));
+		write_double(doubles_file, vigna_uint64_to_double_mult(combined));
+		write_double(doubles_cast_file, vigna_uint64_to_double_alt(combined));
+
+
+		// fprintf(doubles_file, "'%.20e',\n", 
+		// 		vigna_uint64_to_double_mult(combined));
+		// fprintf(doubles_cast_file, "'%.20e',\n", 
+		// 		vigna_uint64_to_double_alt(combined));
 	}	
 
 	close_ref_outfile(doubles_cast_file);
@@ -503,7 +518,7 @@ void print128plus(uint64_t a, uint64_t b)
 	printf("],\n\n");
 }
 
-void write128p(char* name, uint64_t a, uint64_t b) {
+void write_json_xorshift128p(char* name, uint64_t a, uint64_t b) {
 
 	uint64_t s[2];
 
@@ -523,10 +538,11 @@ void write128p(char* name, uint64_t a, uint64_t b) {
 
 	for (int i=0; i<VALUES_PER_SAMPLE; ++i) {
 		uint64_t x = xorshift128plus_int(s);
-		fprintf(ints_file, "'%016llx',\n", x);
+		//fprintf(ints_file, "'%016llx',\n", x);
+		write_uint64(ints_file, x);
 
-		fprintf(doubles_file, "'%.20e',\n", vigna_uint64_to_double_mult(x));
-		fprintf(doubles_cast_file, "'%.20e',\n", vigna_uint64_to_double_alt(x));
+		write_double(doubles_file, vigna_uint64_to_double_mult(x));
+		write_double(doubles_cast_file, vigna_uint64_to_double_alt(x));
 	}
 
 	close_ref_outfile(doubles_cast_file);
@@ -1172,17 +1188,19 @@ int main()
 	// write_xorshift32amx("b", 42);
 	// write_xorshift32amx("c", PI32);
 
-	// write64(1, "a");
-	// write64(42, "b");
-	// write64(PI64, "c");
+	write_xorshift64_json(1, "a");
+	write_xorshift64_json(42, "b");
+	write_xorshift64_json(PI64, "c");
 
-	// write128p("a", 1, 2);
-	// write128p("b", 42, 777);
-	// write128p("c", 8378522730901710845llu, 1653112583875186020llu);
+	write_json_xorshift128("a", 1, 2, 3, 4);
+	write_json_xorshift128("b", 5, 23, 42, 777);
+	write_json_xorshift128("c", 1081037251u, 1975530394u, 2959134556u, 1579461830u);	
 
-	// write128("a", 1, 2, 3, 4);
-	// write128("b", 5, 23, 42, 777);
-	// write128("c", 1081037251u, 1975530394u, 2959134556u, 1579461830u);	
+
+	write_json_xorshift128p("a", 1, 2);
+	write_json_xorshift128p("b", 42, 777);
+	write_json_xorshift128p("c", 8378522730901710845llu, 1653112583875186020llu);
+
 
 	// write_tyche_i("a", 1, 2, 3, 4);
 
