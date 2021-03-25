@@ -550,19 +550,6 @@ void write_json_xorshift128p(char* name, uint64_t a, uint64_t b) {
 	close_ref_outfile(ints_file);
 }
 
-// It it commented out because it was not needed for testing
-// the dart xorshift.
-// void print128plus_double(uint64_t a, uint64_t b)
-// {
-//     printf("const xorshift128plus_double_%d_%d = [\n",  a, b);
-// 	uint64_t s[2];
-//     s[0] = a;
-//     s[1] = b;
-//     for (int i=0; i<VALUES_PER_SAMPLE; ++i)
-//         printf("  \"%.20e\",\n", xorshift128plus_double(&s)); 
-//     printf("];\n\n");
-// }
-
 ////////////////////////////////////////////////////////////////////////////////
 // XOSHIRO128++ 1.0
 //
@@ -1183,10 +1170,6 @@ int main()
 	write_xorshift32_json("a", 1);
 	write_xorshift32_json("b", 42);
 	write_xorshift32_json("c", PI32);
-
-	// write_xorshift32amx("a", 1);
-	// write_xorshift32amx("b", 42);
-	// write_xorshift32amx("c", PI32);
 
 	write_xorshift64_json(1, "a");
 	write_xorshift64_json(42, "b");
