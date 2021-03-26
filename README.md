@@ -8,5 +8,5 @@ numbers exactly.
 The generated values can be used to test the same PRNG algorithms rewritten 
 in other languages.
 
-For example, this is how the [xrandom](https://github.com/rtmigo/xrandom) 
+This is how the [xrandom](https://github.com/rtmigo/xrandom) 
 library is tested.
