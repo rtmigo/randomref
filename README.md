@@ -8,5 +8,5 @@ numbers exactly.
 The generated values can be used to test the same algorithms rewritten 
 in other languages.
 
-For example, this was used to create the 
-[xrandom](https://github.com/rtmigo/xrandom) library in Dart.
+For example, this is how the [xrandom](https://github.com/rtmigo/xrandom) 
+library is tested.
