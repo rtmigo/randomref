@@ -27,7 +27,7 @@ Bounded integer:
 Int-to-double:
 - multiplication
 - bitcast
-- uint32-to-double 
+- randbl32
 
 ## Compiling and running 
 
