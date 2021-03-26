@@ -1,7 +1,7 @@
 Creates JSON with reference values that are the output of different random 
-number generator algorithms.
+number generators (PRNG).
 
-The reference algorithm implementations are usually in C99. C++ behaves 
+The reference PRNG algorithm implementations are usually in C99. C++ behaves 
 the same way when handling numbers. So we use C++ to generate the reference 
 numbers exactly.
 
