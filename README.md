@@ -7,7 +7,7 @@ The reference PRNG algorithm implementations are usually in C99. C++ behaves
 the same way when handling numbers. So we use C++ to generate the reference 
 values.
 
-Algorithms currently included:
+## Algorithms
 
 Random 32-bit integer:
 - xorshift32
