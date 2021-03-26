@@ -10,3 +10,12 @@ in other languages.
 
 This is how the [xrandom](https://github.com/rtmigo/xrandom) 
 library is tested.
+
+## Compiling and running 
+
+On POSIX system with GCC:
+
+``` shell
+$ g++ main.cpp --std=c++2a -o randomref.com
+$ ./randomref.com
+```
