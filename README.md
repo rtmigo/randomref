@@ -3,7 +3,7 @@ number generators (PRNG).
 
 The reference PRNG algorithm implementations are usually in C99. C++ behaves 
 the same way when handling numbers. So we use C++ to generate the reference 
-numbers.
+values.
 
 The generated values can be used to test the same PRNG algorithms rewritten 
 in other languages.
