@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (c) 2021 Art Galkin <github.com/rtmigo>
+// SPDX-FileCopyrightText: (c) 2021 Artsiom Galkin <github.com/rtmigo>
 // SPDX-License-Identifier: UPL-1.0
 
 // runs reference implementations of random number generators.

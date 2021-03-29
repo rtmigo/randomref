@@ -22,12 +22,12 @@ Random 64-bit integer:
 - splitmix64
 
 Bounded integer:
-- "divisionless" method
+- [divisionless](https://arxiv.org/abs/1805.10941)
 
 Int-to-double:
-- multiplication
-- bitcast
-- randbl32
+- [multiplication](https://prng.di.unimi.it/)
+- [bitcast](https://prng.di.unimi.it/)
+- [randbl32](http://doi.acm.org/10.1145/1189756.118975)
 
 ## Compiling and running 
 
