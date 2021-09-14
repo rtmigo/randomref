@@ -19,6 +19,7 @@ Random 64-bit integer:
 - xorshift64
 - xorshift128+
 - xoshiro256++
+- xoshiro256**
 - splitmix64
 
 Bounded integer:

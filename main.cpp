@@ -12,6 +12,7 @@
 #define XORSHIFT128P true
 #define XOSHIRO128PP true
 #define XOSHIRO256PP true
+#define XOSHIRO256SS true
 #define SPLITMIX64 true
 #define MULBERRY32 true
 #define LEMIRE true
@@ -507,6 +508,63 @@ public:
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// XOSHIRO256** 1.0
+//
+// https://xoshiro.di.unimi.it/xoshiro256starstar.c
+// Written in 2018 by David Blackman and Sebastiano Vigna (vigna@acm.org) CC-0
+//
+// This is xoshiro256** 1.0, one of our all-purpose, rock-solid
+// generators. It has excellent (sub-ns) speed, a state (256 bits) that is
+// large enough for any parallel application, and it passes all tests we
+// are aware of.
+//
+// For generating just floating-point numbers, xoshiro256+ is even faster.
+//
+// The state must be seeded so that it is not everywhere zero. If you have
+// a 64-bit seed, we suggest to seed a splitmix64 generator and use its
+// output to fill s.
+
+class Xoshiro256ss: public Alg64 {
+public:
+    Xoshiro256ss(string seed_name, uint64_t seedA, uint64_t seedB, 
+                    uint64_t seedC, uint64_t seedD  ) {
+        this->s[0] = seedA;
+        this->s[1] = seedB;
+        this->s[2] = seedC;
+        this->s[3] = seedD;
+
+        this->seed_name = seed_name;
+        this->seed_str = to_string(seedA)+" "+to_string(seedB)+" "
+                        +to_string(seedC)+" "+to_string(seedD);
+        this->alg_name = "xoshiro256**";
+    }
+
+    static inline uint64_t rotl(const uint64_t x, int k) {
+        return (x << k) | (x >> (64 - k));
+    }
+
+    uint64_t s[4];
+
+    uint64_t next(void) {
+        const uint64_t result = rotl(s[1] * 5, 7) * 9;
+
+        const uint64_t t = s[1] << 17;
+
+        s[2] ^= s[0];
+        s[3] ^= s[1];
+        s[1] ^= s[2];
+        s[0] ^= s[3];
+
+        s[2] ^= t;
+
+        s[3] = rotl(s[3], 45);
+
+        return result;
+    }    
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
 // SPLITMIX64
 //
 // https://prng.di.unimi.it/splitmix64.c
@@ -694,6 +752,14 @@ int main() {
         shared_ptr<Alg>(new Xoshiro256pp("a", 1, 2, 3, 4)),
         shared_ptr<Alg>(new Xoshiro256pp("b", 5, 23, 42, 777)),
         shared_ptr<Alg>(new Xoshiro256pp(
+            "c", 0x621b97ff9b08ce44ull, 0x92974ae633d5ee97ull, 
+            0x9c7e491e8f081368ull, 0xf7d3b43bed078fa3ull)),
+        #endif
+
+        #if XOSHIRO256SS
+        shared_ptr<Alg>(new Xoshiro256ss("a", 1, 2, 3, 4)),
+        shared_ptr<Alg>(new Xoshiro256ss("b", 5, 23, 42, 777)),
+        shared_ptr<Alg>(new Xoshiro256ss(
             "c", 0x621b97ff9b08ce44ull, 0x92974ae633d5ee97ull, 
             0x9c7e491e8f081368ull, 0xf7d3b43bed078fa3ull)),
         #endif
